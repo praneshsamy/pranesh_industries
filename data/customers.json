@@ -6,7 +6,8 @@
     "contactPerson": "Ramesh Kumar",
     "phone": "9876543210",
     "product": "Steel Components",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2026-03-11"
   },
   {
     "state": "Tamil Nadu",
@@ -15,7 +16,8 @@
     "contactPerson": "Anand S",
     "phone": "9887766554",
     "product": "Precision Tools",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2026-03-10"
   },
   {
     "state": "Karnataka",
@@ -24,7 +26,8 @@
     "contactPerson": "Suresh B",
     "phone": "9123456789",
     "product": "Machinery Parts",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2026-02-15"
   },
   {
     "state": "Karnataka",
@@ -33,7 +36,8 @@
     "contactPerson": "Vijay Patil",
     "phone": "9900112233",
     "product": "Textile Machinery",
-    "status": "Inactive"
+    "status": "Inactive",
+    "registrationDate": "2026-01-20"
   },
   {
     "state": "Andhra Pradesh",
@@ -42,7 +46,8 @@
     "contactPerson": "Rao P",
     "phone": "9445566778",
     "product": "Industrial Furnaces",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2025-12-05"
   },
   {
     "state": "Andhra Pradesh",
@@ -51,7 +56,8 @@
     "contactPerson": "Subrahmanya G",
     "phone": "9778899001",
     "product": "Water Pumps",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2026-03-05"
   },
   {
     "state": "Maharashtra",
@@ -60,7 +66,8 @@
     "contactPerson": "Deshpande J",
     "phone": "9112233445",
     "product": "Solar Panels",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2026-03-11"
   },
   {
     "state": "Maharashtra",
@@ -69,6 +76,7 @@
     "contactPerson": "Sanjay Kapoor",
     "phone": "9223344556",
     "product": "Conveyor Belts",
-    "status": "Active"
+    "status": "Active",
+    "registrationDate": "2025-11-15"
   }
 ]

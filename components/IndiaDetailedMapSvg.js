@@ -263,276 +263,253 @@ const IndiaDetailedMapSvg = ({ onRegionSelect, onRegionHover, onRegionLeave, sel
         >
   </path>
  </g>
- <g id="points">
-  <circle classname="8.270456422425491|69.64751778317537"  cx="139.9" cy="912.7" id="0"
-            className={`state-region ${manufacturingStates.includes('8.270456422425491|69.64751778317537') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === '8.270456422425491|69.64751778317537' ? 'state-active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onRegionSelect('8.270456422425491|69.64751778317537'); }}
-            onMouseEnter={(e) => onRegionHover('8.270456422425491|69.64751778317537', e)}
-            onMouseLeave={onRegionLeave}
-        >
-  </circle>
-  <circle classname="20.400061359468964|84.26020775342162"  cx="540" cy="569.2" id="1"
-            className={`state-region ${manufacturingStates.includes('20.400061359468964|84.26020775342162') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === '20.400061359468964|84.26020775342162' ? 'state-active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onRegionSelect('20.400061359468964|84.26020775342162'); }}
-            onMouseEnter={(e) => onRegionHover('20.400061359468964|84.26020775342162', e)}
-            onMouseLeave={onRegionLeave}
-        >
-  </circle>
-  <circle classname="35.5620675307733|95.95035972961863"  cx="860.1" cy="97" id="2"
-            className={`state-region ${manufacturingStates.includes('35.5620675307733|95.95035972961863') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === '35.5620675307733|95.95035972961863' ? 'state-active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onRegionSelect('35.5620675307733|95.95035972961863'); }}
-            onMouseEnter={(e) => onRegionHover('35.5620675307733|95.95035972961863', e)}
-            onMouseLeave={onRegionLeave}
-        >
-  </circle>
- </g>
  <g id="label_points">
-  <circle classname="Andaman and Nicobar"  cx="770.3" cy="814.6" id="INAN"
+  <circle data-name="Andaman and Nicobar"  cx="770.3" cy="814.6" id="INAN"
             className={`state-region ${manufacturingStates.includes('Andaman and Nicobar') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Andaman and Nicobar' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Andaman and Nicobar'); }}
             onMouseEnter={(e) => onRegionHover('Andaman and Nicobar', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Telangana"  cx="396.7" cy="641.9" id="INTG"
+  <circle data-name="Telangana"  cx="396.7" cy="641.9" id="INTG"
             className={`state-region ${manufacturingStates.includes('Telangana') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Telangana' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Telangana'); }}
             onMouseEnter={(e) => onRegionHover('Telangana', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Andhra Pradesh"  cx="392.3" cy="730.7" id="INAP"
+  <circle data-name="Andhra Pradesh"  cx="392.3" cy="730.7" id="INAP"
             className={`state-region ${manufacturingStates.includes('Andhra Pradesh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Andhra Pradesh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Andhra Pradesh'); }}
             onMouseEnter={(e) => onRegionHover('Andhra Pradesh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Arunachal Pradesh"  cx="826.3" cy="325.9" id="INAR"
+  <circle data-name="Arunachal Pradesh"  cx="826.3" cy="325.9" id="INAR"
             className={`state-region ${manufacturingStates.includes('Arunachal Pradesh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Arunachal Pradesh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Arunachal Pradesh'); }}
             onMouseEnter={(e) => onRegionHover('Arunachal Pradesh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Assam"  cx="775.9" cy="393.9" id="INAS"
+  <circle data-name="Assam"  cx="775.9" cy="393.9" id="INAS"
             className={`state-region ${manufacturingStates.includes('Assam') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Assam' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Assam'); }}
             onMouseEnter={(e) => onRegionHover('Assam', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Bihar"  cx="575.8" cy="411" id="INBR"
+  <circle data-name="Bihar"  cx="575.8" cy="411" id="INBR"
             className={`state-region ${manufacturingStates.includes('Bihar') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Bihar' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Bihar'); }}
             onMouseEnter={(e) => onRegionHover('Bihar', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Chandigarh"  cx="334.9" cy="255.1" id="INCH"
+  <circle data-name="Chandigarh"  cx="334.9" cy="255.1" id="INCH"
             className={`state-region ${manufacturingStates.includes('Chandigarh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Chandigarh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Chandigarh'); }}
             onMouseEnter={(e) => onRegionHover('Chandigarh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Chhattisgarh"  cx="473.5" cy="533.4" id="INCT"
+  <circle data-name="Chhattisgarh"  cx="473.5" cy="533.4" id="INCT"
             className={`state-region ${manufacturingStates.includes('Chhattisgarh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Chhattisgarh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Chhattisgarh'); }}
             onMouseEnter={(e) => onRegionHover('Chhattisgarh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Dādra and Nagar Haveli and Damān and Diu"  cx="232.5" cy="573.8" id="INDH"
+  <circle data-name="Dādra and Nagar Haveli and Damān and Diu"  cx="232.5" cy="573.8" id="INDH"
             className={`state-region ${manufacturingStates.includes('Dādra and Nagar Haveli and Damān and Diu') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Dādra and Nagar Haveli and Damān and Diu' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Dādra and Nagar Haveli and Damān and Diu'); }}
             onMouseEnter={(e) => onRegionHover('Dādra and Nagar Haveli and Damān and Diu', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Delhi"  cx="344.1" cy="320" id="INDL"
+  <circle data-name="Delhi"  cx="344.1" cy="320" id="INDL"
             className={`state-region ${manufacturingStates.includes('Delhi') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Delhi' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Delhi'); }}
             onMouseEnter={(e) => onRegionHover('Delhi', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Goa"  cx="261.6" cy="713.9" id="INGA"
+  <circle data-name="Goa"  cx="261.6" cy="713.9" id="INGA"
             className={`state-region ${manufacturingStates.includes('Goa') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Goa' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Goa'); }}
             onMouseEnter={(e) => onRegionHover('Goa', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Gujarat"  cx="199.2" cy="481" id="INGJ"
+  <circle data-name="Gujarat"  cx="199.2" cy="481" id="INGJ"
             className={`state-region ${manufacturingStates.includes('Gujarat') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Gujarat' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Gujarat'); }}
             onMouseEnter={(e) => onRegionHover('Gujarat', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Haryana"  cx="323" cy="305.2" id="INHR"
+  <circle data-name="Haryana"  cx="323" cy="305.2" id="INHR"
             className={`state-region ${manufacturingStates.includes('Haryana') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Haryana' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Haryana'); }}
             onMouseEnter={(e) => onRegionHover('Haryana', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Himachal Pradesh"  cx="348.4" cy="217.7" id="INHP"
+  <circle data-name="Himachal Pradesh"  cx="348.4" cy="217.7" id="INHP"
             className={`state-region ${manufacturingStates.includes('Himachal Pradesh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Himachal Pradesh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Himachal Pradesh'); }}
             onMouseEnter={(e) => onRegionHover('Himachal Pradesh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Jharkhand"  cx="563.9" cy="475.8" id="INJH"
+  <circle data-name="Jharkhand"  cx="563.9" cy="475.8" id="INJH"
             className={`state-region ${manufacturingStates.includes('Jharkhand') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Jharkhand' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Jharkhand'); }}
             onMouseEnter={(e) => onRegionHover('Jharkhand', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Karnataka"  cx="302.1" cy="728.1" id="INKA"
+  <circle data-name="Karnataka"  cx="302.1" cy="728.1" id="INKA"
             className={`state-region ${manufacturingStates.includes('Karnataka') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Karnataka' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Karnataka'); }}
             onMouseEnter={(e) => onRegionHover('Karnataka', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Kerala"  cx="325.5" cy="848.9" id="INKL"
+  <circle data-name="Kerala"  cx="325.5" cy="848.9" id="INKL"
             className={`state-region ${manufacturingStates.includes('Kerala') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Kerala' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Kerala'); }}
             onMouseEnter={(e) => onRegionHover('Kerala', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Madhya Pradesh"  cx="378.4" cy="494.2" id="INMP"
+  <circle data-name="Madhya Pradesh"  cx="378.4" cy="494.2" id="INMP"
             className={`state-region ${manufacturingStates.includes('Madhya Pradesh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Madhya Pradesh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Madhya Pradesh'); }}
             onMouseEnter={(e) => onRegionHover('Madhya Pradesh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Maharashtra"  cx="305.7" cy="597.9" id="INMH"
+  <circle data-name="Maharashtra"  cx="305.7" cy="597.9" id="INMH"
             className={`state-region ${manufacturingStates.includes('Maharashtra') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Maharashtra' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Maharashtra'); }}
             onMouseEnter={(e) => onRegionHover('Maharashtra', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Manipur"  cx="801.5" cy="443.1" id="INMN"
+  <circle data-name="Manipur"  cx="801.5" cy="443.1" id="INMN"
             className={`state-region ${manufacturingStates.includes('Manipur') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Manipur' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Manipur'); }}
             onMouseEnter={(e) => onRegionHover('Manipur', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Meghalaya"  cx="737" cy="417.6" id="INML"
+  <circle data-name="Meghalaya"  cx="737" cy="417.6" id="INML"
             className={`state-region ${manufacturingStates.includes('Meghalaya') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Meghalaya' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Meghalaya'); }}
             onMouseEnter={(e) => onRegionHover('Meghalaya', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Mizoram"  cx="776.2" cy="476.2" id="INMZ"
+  <circle data-name="Mizoram"  cx="776.2" cy="476.2" id="INMZ"
             className={`state-region ${manufacturingStates.includes('Mizoram') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Mizoram' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Mizoram'); }}
             onMouseEnter={(e) => onRegionHover('Mizoram', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Nagaland"  cx="822.1" cy="399" id="INNL"
+  <circle data-name="Nagaland"  cx="822.1" cy="399" id="INNL"
             className={`state-region ${manufacturingStates.includes('Nagaland') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Nagaland' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Nagaland'); }}
             onMouseEnter={(e) => onRegionHover('Nagaland', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Orissa"  cx="549.9" cy="559.3" id="INOR"
+  <circle data-name="Orissa"  cx="549.9" cy="559.3" id="INOR"
             className={`state-region ${manufacturingStates.includes('Orissa') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Orissa' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Orissa'); }}
             onMouseEnter={(e) => onRegionHover('Orissa', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Puducherry"  cx="417.7" cy="838.9" id="INPY"
+  <circle data-name="Puducherry"  cx="417.7" cy="838.9" id="INPY"
             className={`state-region ${manufacturingStates.includes('Puducherry') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Puducherry' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Puducherry'); }}
             onMouseEnter={(e) => onRegionHover('Puducherry', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Punjab"  cx="300.5" cy="254.4" id="INPB"
+  <circle data-name="Punjab"  cx="300.5" cy="254.4" id="INPB"
             className={`state-region ${manufacturingStates.includes('Punjab') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Punjab' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Punjab'); }}
             onMouseEnter={(e) => onRegionHover('Punjab', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Rajasthan"  cx="256.7" cy="375.8" id="INRJ"
+  <circle data-name="Rajasthan"  cx="256.7" cy="375.8" id="INRJ"
             className={`state-region ${manufacturingStates.includes('Rajasthan') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Rajasthan' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Rajasthan'); }}
             onMouseEnter={(e) => onRegionHover('Rajasthan', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Sikkim"  cx="654.3" cy="355.6" id="INSK"
+  <circle data-name="Sikkim"  cx="654.3" cy="355.6" id="INSK"
             className={`state-region ${manufacturingStates.includes('Sikkim') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Sikkim' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Sikkim'); }}
             onMouseEnter={(e) => onRegionHover('Sikkim', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Tamil Nadu"  cx="379.6" cy="835.6" id="INTN"
+  <circle data-name="Tamil Nadu"  cx="379.6" cy="835.6" id="INTN"
             className={`state-region ${manufacturingStates.includes('Tamil Nadu') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Tamil Nadu' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Tamil Nadu'); }}
             onMouseEnter={(e) => onRegionHover('Tamil Nadu', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Tripura"  cx="740.6" cy="472.2" id="INTR"
+  <circle data-name="Tripura"  cx="740.6" cy="472.2" id="INTR"
             className={`state-region ${manufacturingStates.includes('Tripura') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Tripura' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Tripura'); }}
             onMouseEnter={(e) => onRegionHover('Tripura', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Uttar Pradesh"  cx="438.7" cy="375.5" id="INUP"
+  <circle data-name="Uttar Pradesh"  cx="438.7" cy="375.5" id="INUP"
             className={`state-region ${manufacturingStates.includes('Uttar Pradesh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Uttar Pradesh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Uttar Pradesh'); }}
             onMouseEnter={(e) => onRegionHover('Uttar Pradesh', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Uttaranchal"  cx="401.4" cy="272.1" id="INUT"
+  <circle data-name="Uttaranchal"  cx="401.4" cy="272.1" id="INUT"
             className={`state-region ${manufacturingStates.includes('Uttaranchal') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Uttaranchal' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Uttaranchal'); }}
             onMouseEnter={(e) => onRegionHover('Uttaranchal', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="West Bengal"  cx="637.1" cy="485.8" id="INWB"
+  <circle data-name="West Bengal"  cx="637.1" cy="485.8" id="INWB"
             className={`state-region ${manufacturingStates.includes('West Bengal') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'West Bengal' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('West Bengal'); }}
             onMouseEnter={(e) => onRegionHover('West Bengal', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Lakshadweep"  cx="233" cy="912.6" id="INLD"
+  <circle data-name="Lakshadweep"  cx="233" cy="912.6" id="INLD"
             className={`state-region ${manufacturingStates.includes('Lakshadweep') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Lakshadweep' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Lakshadweep'); }}
             onMouseEnter={(e) => onRegionHover('Lakshadweep', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Jammu and Kashmir"  cx="274.8" cy="156.1" id="INJK"
+  <circle data-name="Jammu and Kashmir"  cx="274.8" cy="156.1" id="INJK"
             className={`state-region ${manufacturingStates.includes('Jammu and Kashmir') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Jammu and Kashmir' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Jammu and Kashmir'); }}
             onMouseEnter={(e) => onRegionHover('Jammu and Kashmir', e)}
             onMouseLeave={onRegionLeave}
         >
   </circle>
-  <circle classname="Ladakh"  cx="344.9" cy="136.5" id="INLA"
+  <circle data-name="Ladakh"  cx="344.9" cy="136.5" id="INLA"
             className={`state-region ${manufacturingStates.includes('Ladakh') ? 'state-manufacturing' : 'state-disabled'} ${selectedRegion === 'Ladakh' ? 'state-active' : ''}`}
             onClick={(e) => { e.stopPropagation(); onRegionSelect('Ladakh'); }}
             onMouseEnter={(e) => onRegionHover('Ladakh', e)}
