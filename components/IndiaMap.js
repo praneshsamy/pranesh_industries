@@ -1,11 +1,51 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import IndiaDetailedMapSvg from "./IndiaDetailedMapSvg";
 
-const IndiaMap = ({ onRegionSelect, selectedRegion }) => {
+const IndiaMap = ({ onRegionSelect, selectedRegion: externalSelectedRegion }) => {
     const [hoveredRegion, setHoveredRegion] = useState(null);
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+    const [zoomParams, setZoomParams] = useState({ scale: 1, x: 0, y: 0 });
+
+    const stateZoomConfigs = {
+        'Tamil Nadu': { scale: 3.5, x: 280, y: 720 },          // TN Hubs (Chennai/Coimbatore)
+        'Karnataka': { scale: 3.2, x: 240, y: 650 },           // Bangalore area
+        'Maharashtra': { scale: 3.0, x: 180, y: 480 },          // Pune/Mumbai corridor (Fixed alignment)
+        'Andhra Pradesh': { scale: 3.2, x: 380, y: 650 },      // Vijayawada/Coastal centers
+        'Telangana': { scale: 3.5, x: 330, y: 580 }            // Hyderabad region
+    };
+
+    // Helper to find the parent state for any selection (State or District)
+    const getParentState = (region) => {
+        if (!region) return null;
+        if (stateZoomConfigs[region]) return region; // It's already a state
+        const hub = hubs.find(h => h.name === region);
+        return hub ? hub.state : null;
+    };
+
+    // Keep internal zoom in sync with external selection
+    useEffect(() => {
+        const parentState = getParentState(externalSelectedRegion);
+        if (parentState && stateZoomConfigs[parentState]) {
+            setZoomParams(stateZoomConfigs[parentState]);
+        } else if (!externalSelectedRegion) {
+            setZoomParams({ scale: 1, x: 0, y: 0 });
+        }
+    }, [externalSelectedRegion]);
+
+    const handleRegionClick = (region) => {
+        // Toggle selection off if same is clicked
+        if (externalSelectedRegion === region) {
+            onRegionSelect(null);
+        } else {
+            onRegionSelect(region);
+        }
+    };
+
+    const resetZoom = () => {
+        onRegionSelect(null);
+    };
 
     const handleRegionHover = (region, e) => {
         setHoveredRegion(region);
@@ -22,12 +62,12 @@ const IndiaMap = ({ onRegionSelect, selectedRegion }) => {
     };
 
     const hubs = [
-        { id: "hub-chennai", name: "Chennai", x: "410", y: "810", type: "Distribution" },
-        { id: "hub-coimbatore", name: "Coimbatore", x: "360", y: "860", type: "Manufacturing" },
-        { id: "hub-bangalore", name: "Bangalore", x: "330", y: "770", type: "R&D Center" },
-        { id: "hub-pune", name: "Pune", x: "270", y: "610", type: "Automotive Hub" },
-        { id: "hub-mumbai", name: "Mumbai", x: "240", y: "580", type: "Logistics HQ" },
-        { id: "hub-vijayawada", name: "Vijayawada", x: "430", y: "740", type: "Processing" },
+        { id: "hub-chennai", name: "Chennai", state: "Tamil Nadu", x: "410", y: "810", type: "Distribution" },
+        { id: "hub-coimbatore", name: "Coimbatore", state: "Tamil Nadu", x: "360", y: "860", type: "Manufacturing" },
+        { id: "hub-bangalore", name: "Bangalore", state: "Karnataka", x: "330", y: "770", type: "R&D Center" },
+        { id: "hub-pune", name: "Pune", state: "Maharashtra", x: "270", y: "610", type: "Automotive Hub" },
+        { id: "hub-mumbai", name: "Mumbai", state: "Maharashtra", x: "240", y: "580", type: "Logistics HQ" },
+        { id: "hub-vijayawada", name: "Vijayawada", state: "Andhra Pradesh", x: "430", y: "740", type: "Processing" },
     ];
 
     const manufacturingStates = [
@@ -38,7 +78,7 @@ const IndiaMap = ({ onRegionSelect, selectedRegion }) => {
 
     return (
         <div
-            className="map-viewport position-relative w-100"
+            className="map-viewport position-relative w-100 h-100"
             onMouseMove={(e) => {
                 if (hoveredRegion) {
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -50,31 +90,56 @@ const IndiaMap = ({ onRegionSelect, selectedRegion }) => {
             }}
         >
             <IndiaDetailedMapSvg
-                selectedRegion={selectedRegion}
-                onRegionSelect={onRegionSelect}
+                selectedRegion={externalSelectedRegion}
+                onRegionSelect={handleRegionClick}
                 onRegionHover={handleRegionHover}
                 onRegionLeave={handleRegionLeave}
+                zoomParams={zoomParams}
             >
-                {hubs.map((hub) => (
-                    <g key={hub.id} className="hub-group">
-                        <circle
-                            cx={hub.x}
-                            cy={hub.y}
-                            r="12"
-                            className="hub-ping"
-                        />
-                        <circle
-                            cx={hub.x}
-                            cy={hub.y}
-                            r="6"
-                            className={`district-hub ${selectedRegion === hub.name ? "hub-active" : ""}`}
-                            onClick={(e) => { e.stopPropagation(); onRegionSelect(hub.name); }}
-                            onMouseEnter={(e) => handleRegionHover(hub.name, e)}
-                            onMouseLeave={handleRegionLeave}
-                        />
-                    </g>
-                ))}
+                {(() => {
+                    const activeParentState = getParentState(externalSelectedRegion);
+                    return hubs
+                        .filter(hub => !activeParentState || hub.state === activeParentState)
+                        .map((hub) => (
+                            <g key={hub.id} className="hub-group hub-visible">
+                                <circle
+                                    cx={hub.x}
+                                    cy={hub.y}
+                                    r="12"
+                                    className={`hub-ping ${externalSelectedRegion === hub.name ? 'ping-active' : ''}`}
+                                />
+                                <circle
+                                    cx={hub.x}
+                                    cy={hub.y}
+                                    r="6"
+                                    className={`district-hub ${externalSelectedRegion === hub.name ? "hub-active" : ""}`}
+                                    onClick={(e) => { e.stopPropagation(); handleRegionClick(hub.name); }}
+                                    onMouseEnter={(e) => handleRegionHover(hub.name, e)}
+                                    onMouseLeave={handleRegionLeave}
+                                />
+                                {activeParentState && (
+                                    <text
+                                        x={hub.x}
+                                        y={parseInt(hub.y) + 20}
+                                        textAnchor="middle"
+                                        className={`hub-label animate-fade-in ${externalSelectedRegion === hub.name ? 'label-active' : ''}`}
+                                    >
+                                        {hub.name}
+                                    </text>
+                                )}
+                            </g>
+                        ));
+                })()}
             </IndiaDetailedMapSvg>
+
+            {externalSelectedRegion && (
+                <button 
+                    className="btn btn-dark btn-sm reset-map-btn shadow-lg animate-pop"
+                    onClick={resetZoom}
+                >
+                    <i className="bi bi-zoom-out me-2"></i>Back to Full Map
+                </button>
+            )}
 
             {/* Smarter Floating Tooltip */}
             {hoveredRegion && (
@@ -115,10 +180,66 @@ const IndiaMap = ({ onRegionSelect, selectedRegion }) => {
 
                 .india-svg-container {
                     width: 100%;
-                    max-height: 700px;
+                    height: 100%;
+                    min-height: 500px;
+                    max-height: 800px;
                     display: flex;
+                    align-items: center;
                     justify-content: center;
                     filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));
+                    overflow: hidden;
+                    position: relative;
+                }
+
+                .reset-map-btn {
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    z-index: 100;
+                    border-radius: 50px;
+                    padding: 8px 20px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    background: #1e293b;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .reset-map-btn:hover {
+                    background: #2563eb;
+                    transform: translateY(-2px);
+                }
+                
+                .hub-label {
+                    fill: #475569;
+                    font-weight: 700;
+                    font-size: 6px;
+                    pointer-events: none;
+                    transition: all 0.3s ease;
+                }
+
+                .label-active {
+                    fill: #ef4444;
+                    font-weight: 900;
+                    font-size: 8px;
+                }
+
+                .dark-mode .hub-label {
+                    fill: #94a3b8;
+                }
+                
+                .dark-mode .label-active {
+                    fill: #ef4444;
+                }
+
+                .animate-fade-in {
+                    animation: fadeIn 0.4s ease-out forwards;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(3px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
                 
                 .state-region {
@@ -162,19 +283,28 @@ const IndiaMap = ({ onRegionSelect, selectedRegion }) => {
 
                 .hub-ping {
                     fill: #f59e0b;
-                    opacity: 0.2;
-                    animation: hubPing 2s infinite;
+                    opacity: 0.15;
+                    animation: hubPing 2.5s infinite;
                     pointer-events: none;
+                    transition: all 0.3s ease;
+                }
+
+                .ping-active {
+                    fill: #ef4444;
+                    opacity: 0.3;
+                    animation-duration: 1.5s;
                 }
 
                 @keyframes hubPing {
-                    0% { transform: scale(1); opacity: 0.4; }
-                    100% { transform: scale(2.5); opacity: 0; }
+                    0% { transform: scale(1); opacity: 0.3; }
+                    100% { transform: scale(3); opacity: 0; }
                 }
 
                 .hub-active {
                     fill: #ef4444 !important;
-                    r: 8;
+                    stroke: #ffffff !important;
+                    stroke-width: 3 !important;
+                    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
                 }
 
                 .map-cursor-tooltip {
