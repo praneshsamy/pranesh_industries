@@ -1,0 +1,74 @@
+[
+  {
+    "state": "Tamil Nadu",
+    "district": "Coimbatore",
+    "customerName": "ABC Industries",
+    "contactPerson": "Ramesh Kumar",
+    "phone": "9876543210",
+    "product": "Steel Components",
+    "status": "Active"
+  },
+  {
+    "state": "Tamil Nadu",
+    "district": "Chennai",
+    "customerName": "Chennai Engineering",
+    "contactPerson": "Anand S",
+    "phone": "9887766554",
+    "product": "Precision Tools",
+    "status": "Active"
+  },
+  {
+    "state": "Karnataka",
+    "district": "Bangalore",
+    "customerName": "Tech Manufacturing Ltd",
+    "contactPerson": "Suresh B",
+    "phone": "9123456789",
+    "product": "Machinery Parts",
+    "status": "Active"
+  },
+  {
+    "state": "Karnataka",
+    "district": "Mysore",
+    "customerName": "Kaveri Textiles",
+    "contactPerson": "Vijay Patil",
+    "phone": "9900112233",
+    "product": "Textile Machinery",
+    "status": "Inactive"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "district": "Visakhapatnam",
+    "customerName": "Vizag Steel Works",
+    "contactPerson": "Rao P",
+    "phone": "9445566778",
+    "product": "Industrial Furnaces",
+    "status": "Active"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "district": "Vijayawada",
+    "customerName": "Krishna Pump Co",
+    "contactPerson": "Subrahmanya G",
+    "phone": "9778899001",
+    "product": "Water Pumps",
+    "status": "Active"
+  },
+  {
+    "state": "Maharashtra",
+    "district": "Pune",
+    "customerName": "Pune Power Gen",
+    "contactPerson": "Deshpande J",
+    "phone": "9112233445",
+    "product": "Solar Panels",
+    "status": "Active"
+  },
+  {
+    "state": "Maharashtra",
+    "district": "Mumbai",
+    "customerName": "Gateway Logistics",
+    "contactPerson": "Sanjay Kapoor",
+    "phone": "9223344556",
+    "product": "Conveyor Belts",
+    "status": "Active"
+  }
+]
