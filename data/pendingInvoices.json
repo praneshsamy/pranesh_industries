@@ -1,0 +1,47 @@
+[
+  {
+    "id": "INV-P-001",
+    "customer": "Samy Industrial Works",
+    "company": "Samy Tech Pvt Ltd",
+    "phone": "+91 98765 43210",
+    "email": "customer@example.com",
+    "gst": "33AAACS1234A1Z1",
+    "amount": 14500,
+    "paid": 0,
+    "issueDate": "2026-03-01",
+    "dueDate": "2026-04-15",
+    "billingType": "Both (Process + Product)",
+    "details": "Steel Sheets + Machining & Cutting",
+    "status": "Pending"
+  },
+  {
+    "id": "INV-W-002",
+    "customer": "Ravi Engineering",
+    "company": "Ravi Machines",
+    "phone": "+91 91234 56789",
+    "email": "ravi@engineering.com",
+    "gst": "33BBBS1234B2Z2",
+    "amount": 10000,
+    "paid": 5000,
+    "issueDate": "2026-03-01",
+    "dueDate": "2026-03-18",
+    "billingType": "Without Process",
+    "details": "100 Units Hardware Parts",
+    "status": "Pending"
+  },
+  {
+    "id": "INV-B-004",
+    "customer": "Arun Industries",
+    "company": "Arun Casting",
+    "phone": "+91 77665 54433",
+    "email": "arun@casting.com",
+    "gst": "33DDDS1234D4Z4",
+    "amount": 25000,
+    "paid": 0,
+    "issueDate": "2025-12-20",
+    "dueDate": "2026-02-01",
+    "billingType": "Both (Process + Product)",
+    "details": "Iron Brackets + Coating",
+    "status": "Overdue"
+  }
+]

@@ -82,9 +82,9 @@ const IndiaMap = ({ onRegionSelect, selectedRegion: externalSelectedRegion }) =>
             onMouseMove={(e) => {
                 if (hoveredRegion) {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    setCursorPos({ 
-                        x: e.clientX - rect.left, 
-                        y: e.clientY - rect.top 
+                    setCursorPos({
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
                     });
                 }
             }}
@@ -133,7 +133,7 @@ const IndiaMap = ({ onRegionSelect, selectedRegion: externalSelectedRegion }) =>
             </IndiaDetailedMapSvg>
 
             {externalSelectedRegion && (
-                <button 
+                <button
                     className="btn btn-dark btn-sm reset-map-btn shadow-lg animate-pop"
                     onClick={resetZoom}
                 >

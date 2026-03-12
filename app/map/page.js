@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import IndiaMap from '@/components/IndiaMap';
 import CustomerTable from '@/components/CustomerTable';
 import StateInfoCard from '@/components/StateInfoCard';
@@ -103,6 +104,9 @@ const MapPage = () => {
                         <button className="btn-toggle-theme shadow-sm me-2" onClick={toggleDarkMode}>
                             <i className={`bi bi-${isDarkMode ? 'sun-fill text-warning' : 'moon-stars-fill text-primary'}`}></i>
                         </button>
+                        <Link href="/gst-lookup" className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold d-none d-lg-flex align-items-center gap-2 border-opacity-25">
+                            <i className="bi bi-shield-check"></i> GST Lookup
+                        </Link>
                         <div className="vr d-none d-md-block" style={{ height: '30px' }}></div>
                         <button className="btn-notification position-relative d-none d-sm-block">
                             <i className="bi bi-bell-fill fs-5"></i>
