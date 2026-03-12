@@ -1,427 +1,283 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import IndiaDetailedMapSvg from "./IndiaDetailedMapSvg";
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { ArrowLeft, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import * as d3 from 'd3';
 
-const IndiaMap = ({ onRegionSelect, selectedRegion: externalSelectedRegion }) => {
-    const [hoveredRegion, setHoveredRegion] = useState(null);
-    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-    const [zoomParams, setZoomParams] = useState({ scale: 1, x: 0, y: 0 });
+export default function IndiaMap({
+    onDistrictSelect,
+    activeDistrict,
+    activeDistricts = [],
+    onVisibleFeaturesChange,
+    onViewModeChange,
+    onStateSelect,
+    searchTerm = "",
+    onRegionSelect,
+    selectedRegion
+}) {
+    const svgRef = useRef(null);
+    const wrapperRef = useRef(null);
+    const [geoData, setGeoData] = useState(null);
+    const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+    const [viewMode, setViewMode] = useState('states');
+    const [selectedState, setSelectedState] = useState(null);
+    const lastZoomedStateRef = useRef(null);
 
-    const stateZoomConfigs = {
-        'Tamil Nadu': { scale: 3.5, x: 280, y: 720 },          // TN Hubs (Chennai/Coimbatore)
-        'Karnataka': { scale: 3.2, x: 240, y: 650 },           // Bangalore area
-        'Maharashtra': { scale: 3.0, x: 180, y: 480 },          // Pune/Mumbai corridor (Fixed alignment)
-        'Andhra Pradesh': { scale: 3.2, x: 380, y: 650 },      // Vijayawada/Coastal centers
-        'Telangana': { scale: 3.5, x: 330, y: 580 }            // Hyderabad region
-    };
+    const manufacturingStates = useMemo(() => [
+        'TAMIL NADU', 'KARNATAKA', 'ANDHRA PRADESH', 'MAHARASHTRA', 'TELANGANA'
+    ], []);
 
-    // Helper to find the parent state for any selection (State or District)
-    const getParentState = (region) => {
-        if (!region) return null;
-        if (stateZoomConfigs[region]) return region; // It's already a state
-        const hub = hubs.find(h => h.name === region);
-        return hub ? hub.state : null;
-    };
+    const isManufacturing = (name) => manufacturingStates.includes((name || '').toUpperCase());
 
-    // Keep internal zoom in sync with external selection
+    // 1. Fetch GeoJSON
     useEffect(() => {
-        const parentState = getParentState(externalSelectedRegion);
-        if (parentState && stateZoomConfigs[parentState]) {
-            setZoomParams(stateZoomConfigs[parentState]);
-        } else if (!externalSelectedRegion) {
-            setZoomParams({ scale: 1, x: 0, y: 0 });
+        Promise.all([
+            fetch('https://raw.githubusercontent.com/geohacker/india/master/state/india_state.geojson').then(res => res.json()),
+            fetch('https://raw.githubusercontent.com/geohacker/india/master/district/india_district.geojson').then(res => res.json())
+        ]).then(([states, districts]) => {
+            setGeoData({ states, districts });
+        }).catch(err => console.error("Error loading GeoJSON", err));
+    }, []);
+
+    // 2. Responsive
+    useEffect(() => {
+        const observeTarget = wrapperRef.current;
+        if (!observeTarget) return;
+        const resizeObserver = new ResizeObserver(entries => {
+            if (entries[0]) {
+                const { width, height } = entries[0].contentRect;
+                setDimensions({ width, height });
+            }
+        });
+        resizeObserver.observe(observeTarget);
+        return () => resizeObserver.unobserve(observeTarget);
+    }, []);
+
+    const initialFeatures = useMemo(() => {
+        if (!geoData || !geoData.states || !geoData.districts) return [];
+        return viewMode === 'states' ? geoData.states.features :
+            geoData.districts.features.filter((f) => (f.properties?.NAME_1 || f.properties?.stname) === selectedState);
+    }, [geoData, viewMode, selectedState]);
+
+    const currentFeatures = useMemo(() => {
+        if (!searchTerm) return initialFeatures;
+        return initialFeatures.filter((f) => {
+            const name = f.properties?.NAME_2 || f.properties?.dtname || f.properties?.NAME_1 || f.properties?.stname || '';
+            return name.toLowerCase().includes(searchTerm.toLowerCase());
+        });
+    }, [initialFeatures, searchTerm]);
+
+    useEffect(() => {
+        if (onVisibleFeaturesChange) onVisibleFeaturesChange(currentFeatures);
+    }, [currentFeatures, onVisibleFeaturesChange]);
+
+    useEffect(() => {
+        if (onViewModeChange) onViewModeChange(viewMode);
+    }, [viewMode, onViewModeChange]);
+
+    useEffect(() => {
+        if (selectedRegion && selectedRegion !== selectedState) {
+            const s = geoData?.states?.features.find(f => (f.properties?.NAME_1 || f.properties?.stname) === selectedRegion);
+            if (s) {
+                setSelectedState(selectedRegion);
+                setViewMode('districts');
+            }
+        } else if (!selectedRegion && selectedState) {
+            setSelectedState(null);
+            setViewMode('states');
         }
-    }, [externalSelectedRegion]);
+    }, [selectedRegion, geoData, selectedState]);
 
-    const handleRegionClick = (region) => {
-        // Toggle selection off if same is clicked
-        if (externalSelectedRegion === region) {
-            onRegionSelect(null);
-        } else {
-            onRegionSelect(region);
-        }
-    };
+    // 3. Render
+    useEffect(() => {
+        if (!geoData || !geoData.states || !geoData.districts || !svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
 
-    const resetZoom = () => {
-        onRegionSelect(null);
-    };
+        const { width, height } = dimensions;
+        const svg = d3.select(svgRef.current);
+        const currentTransform = viewMode === 'states' ? d3.zoomIdentity : d3.zoomTransform(svg.node());
+        svg.selectAll("*").remove();
 
-    const handleRegionHover = (region, e) => {
-        setHoveredRegion(region);
-        if (e) {
-            setCursorPos({
-                x: e.clientX,
-                y: e.clientY,
+        const projection = d3.geoMercator().fitSize([width, height], geoData.states);
+        const pathGenerator = d3.geoPath().projection(projection);
+
+        const defs = svg.append("defs");
+        const glowFilter = defs.append("filter").attr("id", "selection-glow").attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
+        glowFilter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "blur");
+        glowFilter.append("feComposite").attr("in", "SourceGraphic").attr("in2", "blur").attr("operator", "over");
+
+        const g = svg.append("g");
+        g.attr("transform", currentTransform.toString());
+
+        const statesG = g.append("g").attr("class", "states-layer");
+        const districtsG = g.append("g").attr("class", "districts-layer");
+        const labelsG = g.append("g").attr("class", "labels-layer").style("pointer-events", "none");
+
+        const zoom = d3.zoom().scaleExtent([1, 100]).on("zoom", (event) => {
+            g.attr("transform", event.transform);
+            g.selectAll("path").attr("stroke-width", 0.5 / event.transform.k);
+            labelsG.selectAll("text").style("font-size", (d) => {
+                const base = d.type === 'state' ? 10 : 4;
+                return (base / Math.sqrt(event.transform.k)) + "px";
             });
+        });
+
+        svg.call(zoom).on("mousedown.zoom", null).on("touchstart.zoom", null).on("wheel.zoom", null).on("dblclick.zoom", null);
+        svg.call(zoom.transform, currentTransform);
+
+        const zoomToFeature = (feature) => {
+            const bounds = pathGenerator.bounds(feature);
+            const dx = bounds[1][0] - bounds[0][0], dy = bounds[1][1] - bounds[0][1];
+            const x = (bounds[0][0] + bounds[1][0]) / 2, y = (bounds[0][1] + bounds[1][1]) / 2;
+            const scale = Math.max(1, Math.min(40, 1.05 / Math.max(dx / width, dy / height)));
+            const translate = [width / 2 - scale * x, height / 2 - scale * y];
+            svg.transition().duration(900).ease(d3.easeCubicInOut).call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+        };
+
+        // Render States
+        const statePaths = statesG.selectAll("path")
+            .data(geoData.states.features)
+            .enter().append("path")
+            .attr("d", pathGenerator)
+            .attr("fill", (d) => {
+                const name = d.properties?.NAME_1 || d.properties?.stname;
+                if (!isManufacturing(name)) return "#1a1a1e";
+                return name === selectedState ? "#3b82f6" : "#2a2a32";
+            })
+            .attr("stroke", "#09090b")
+            .attr("stroke-width", 0.5)
+            .attr("class", (d) => isManufacturing(d.properties?.NAME_1 || d.properties?.stname) ? "cursor-pointer" : "opacity-40")
+            .on("click", (event, feature) => {
+                const name = feature.properties?.NAME_1 || feature.properties?.stname;
+                if (!isManufacturing(name)) return;
+                setSelectedState(name);
+                if (onStateSelect) onStateSelect(name);
+                if (onRegionSelect) onRegionSelect(name);
+                setViewMode('districts');
+            });
+
+        // State Labels
+        if (viewMode === 'states') {
+            labelsG.selectAll(".state-label")
+                .data(geoData.states.features)
+                .enter().append("text")
+                .attr("class", "state-label")
+                .attr("transform", d => `translate(${pathGenerator.centroid(d)})`)
+                .attr("text-anchor", "middle")
+                .attr("fill", d => isManufacturing(d.properties?.NAME_1 || d.properties?.stname) ? "#ffffff" : "#4b5563")
+                .style("font-size", "10px")
+                .style("font-weight", "bold")
+                .style("text-shadow", "0 1px 2px rgba(0,0,0,0.8)")
+                .text(d => d.properties?.NAME_1 || d.properties?.stname);
+        }
+
+        // Render Districts
+        if (viewMode === 'districts' || searchTerm) {
+            const dFeatures = geoData.districts.features.filter(f => {
+                const sName = f.properties?.NAME_1 || f.properties?.stname;
+                if (searchTerm) {
+                    const dName = (f.properties?.NAME_2 || f.properties?.dtname || '').toLowerCase();
+                    return dName.includes(searchTerm.toLowerCase());
+                }
+                return sName === selectedState;
+            });
+
+            districtsG.selectAll("path")
+                .data(dFeatures)
+                .enter().append("path")
+                .attr("d", pathGenerator)
+                .attr("fill", (f) => {
+                    const name = f.properties?.NAME_2 || f.properties?.dtname || '';
+                    const isHub = activeDistricts.some(ad => ad?.toUpperCase() === name.toUpperCase());
+                    const isSel = activeDistrict && ((activeDistrict.properties?.NAME_2 || activeDistrict.properties?.dtname || '').toUpperCase() === name.toUpperCase());
+                    if (isSel) return '#38bdf8';
+                    if (isHub) return '#3b82f6';
+                    return '#27272a';
+                })
+                .attr("stroke", "#09090b")
+                .attr("stroke-width", 0.2)
+                .on("click", (event, f) => {
+                    event.stopPropagation();
+                    if (onDistrictSelect) onDistrictSelect(f);
+                    if (onRegionSelect) onRegionSelect(f.properties?.NAME_2 || f.properties?.dtname || '');
+                });
+
+            // District Labels
+            labelsG.selectAll(".district-label")
+                .data(dFeatures)
+                .enter().append("text")
+                .attr("class", "district-label")
+                .attr("transform", d => `translate(${pathGenerator.centroid(d)})`)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#ffffff")
+                .style("font-size", "4px")
+                .style("opacity", 0.9)
+                .style("text-shadow", "0 1px 1px rgba(0,0,0,0.5)")
+                .text(d => d.properties?.NAME_2 || d.properties?.dtname);
+        }
+
+        if (viewMode === 'districts' && selectedState && selectedState !== lastZoomedStateRef.current) {
+            const f = geoData.states.features.find(f => (f.properties?.NAME_1 || f.properties?.stname) === selectedState);
+            if (f) { lastZoomedStateRef.current = selectedState; zoomToFeature(f); }
+        } else if (viewMode === 'states') {
+            lastZoomedStateRef.current = null;
+        }
+
+        svg.node().__zoomBehavior = zoom;
+    }, [geoData, dimensions, activeDistricts, activeDistrict, viewMode, selectedState, searchTerm, onDistrictSelect, onStateSelect, onRegionSelect, manufacturingStates]);
+
+    const handleZoomIn = () => {
+        const b = d3.select(svgRef.current).node().__zoomBehavior;
+        if (b) d3.select(svgRef.current).transition().duration(300).call(b.scaleBy, 1.5);
+    };
+    const handleZoomOut = () => {
+        const b = d3.select(svgRef.current).node().__zoomBehavior;
+        if (b) d3.select(svgRef.current).transition().duration(300).call(b.scaleBy, 0.75);
+    };
+    const handleResetZoom = () => {
+        const b = d3.select(svgRef.current).node().__zoomBehavior;
+        if (b) {
+            d3.select(svgRef.current).transition().duration(750).call(b.transform, d3.zoomIdentity);
+            setViewMode('states');
+            setSelectedState(null);
+            if (onStateSelect) onStateSelect(null);
+            if (onRegionSelect) onRegionSelect(null);
+            if (onDistrictSelect) onDistrictSelect(null);
         }
     };
 
-    const handleRegionLeave = () => {
-        setHoveredRegion(null);
-    };
-
-    const hubs = [
-        { id: "hub-chennai", name: "Chennai", state: "Tamil Nadu", x: "410", y: "810", type: "Distribution" },
-        { id: "hub-coimbatore", name: "Coimbatore", state: "Tamil Nadu", x: "360", y: "860", type: "Manufacturing" },
-        { id: "hub-bangalore", name: "Bangalore", state: "Karnataka", x: "330", y: "770", type: "R&D Center" },
-        { id: "hub-pune", name: "Pune", state: "Maharashtra", x: "270", y: "610", type: "Automotive Hub" },
-        { id: "hub-mumbai", name: "Mumbai", state: "Maharashtra", x: "240", y: "580", type: "Logistics HQ" },
-        { id: "hub-vijayawada", name: "Vijayawada", state: "Andhra Pradesh", x: "430", y: "740", type: "Processing" },
-    ];
-
-    const manufacturingStates = [
-        'Tamil Nadu', 'Karnataka', 'Andhra Pradesh', 'Maharashtra'
-    ];
-
-    const isManufacturing = (regionName) => manufacturingStates.includes(regionName) || hubs.some(h => h.name === regionName);
+    if (!geoData) {
+        return (
+            <div className="w-100 bg-dark rounded-3 border h-100 min-vh-50 d-flex flex-column align-items-center justify-content-center text-white">
+                <div className="spinner-border text-primary mb-3" role="status"></div>
+                <div className="small opacity-50">Loading Industrial Map Data...</div>
+            </div>
+        );
+    }
 
     return (
-        <div
-            className="map-viewport position-relative w-100 h-100"
-            onMouseMove={(e) => {
-                if (hoveredRegion) {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setCursorPos({
-                        x: e.clientX - rect.left,
-                        y: e.clientY - rect.top
-                    });
-                }
-            }}
-        >
-            <IndiaDetailedMapSvg
-                selectedRegion={externalSelectedRegion}
-                onRegionSelect={handleRegionClick}
-                onRegionHover={handleRegionHover}
-                onRegionLeave={handleRegionLeave}
-                zoomParams={zoomParams}
-            >
-                {(() => {
-                    const activeParentState = getParentState(externalSelectedRegion);
-                    return hubs
-                        .filter(hub => !activeParentState || hub.state === activeParentState)
-                        .map((hub) => (
-                            <g key={hub.id} className="hub-group hub-visible">
-                                <circle
-                                    cx={hub.x}
-                                    cy={hub.y}
-                                    r="12"
-                                    className={`hub-ping ${externalSelectedRegion === hub.name ? 'ping-active' : ''}`}
-                                />
-                                <circle
-                                    cx={hub.x}
-                                    cy={hub.y}
-                                    r="6"
-                                    className={`district-hub ${externalSelectedRegion === hub.name ? "hub-active" : ""}`}
-                                    onClick={(e) => { e.stopPropagation(); handleRegionClick(hub.name); }}
-                                    onMouseEnter={(e) => handleRegionHover(hub.name, e)}
-                                    onMouseLeave={handleRegionLeave}
-                                />
-                                {activeParentState && (
-                                    <text
-                                        x={hub.x}
-                                        y={parseInt(hub.y) + 20}
-                                        textAnchor="middle"
-                                        className={`hub-label animate-fade-in ${externalSelectedRegion === hub.name ? 'label-active' : ''}`}
-                                    >
-                                        {hub.name}
-                                    </text>
-                                )}
-                            </g>
-                        ));
-                })()}
-            </IndiaDetailedMapSvg>
-
-            {externalSelectedRegion && (
-                <button
-                    className="btn btn-dark btn-sm reset-map-btn shadow-lg animate-pop"
-                    onClick={resetZoom}
-                >
-                    <i className="bi bi-zoom-out me-2"></i>Back to Full Map
+        <div ref={wrapperRef} className="w-100 h-100 rounded-3 overflow-hidden border bg-[#09090b] position-relative" style={{ minHeight: '600px' }}>
+            <svg ref={svgRef} className="w-100 h-100" style={{ cursor: 'grab' }} />
+            {viewMode === 'districts' && (
+                <button onClick={handleResetZoom} className="btn btn-dark btn-sm position-absolute top-0 start-0 m-3 z-3 shadow d-flex align-items-center gap-2 px-3 py-2 border-white border-opacity-10 rounded-pill">
+                    <ArrowLeft size={16} className="text-primary" />
+                    <span className="text-uppercase fw-bold smaller tracking-wider">India Map</span>
                 </button>
             )}
-
-            {/* Smarter Floating Tooltip */}
-            {hoveredRegion && (
-                <div
-                    className={`map-cursor-tooltip ${!isManufacturing(hoveredRegion) ? 'tooltip-locked' : ''}`}
-                    style={{
-                        left: `${cursorPos.x}px`,
-                        top: `${cursorPos.y}px`,
-                    }}
-                >
-                    <div className="tooltip-content shadow-lg animate-pop">
-                        <div className="tooltip-badge">
-                            <span className="region-label">{hoveredRegion}</span>
-                            {isManufacturing(hoveredRegion) ? (
-                                <span className="live-tag">LIVE</span>
-                            ) : (
-                                <span className="locked-tag">
-                                    <i className="bi bi-lock-fill me-1"></i>LOCKED
-                                </span>
-                            )}
-                        </div>
-                        <div className="tooltip-mini-stats">
-                            <div className="mini-stat">
-                                <span className="label">Status</span>
-                                <span className={`value ${isManufacturing(hoveredRegion) ? 'text-success' : 'opacity-50'}`}>
-                                    {isManufacturing(hoveredRegion) ? 'Active Zone' : 'No Coverage'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+            <div className="position-absolute bottom-0 end-0 m-3 d-flex flex-row gap-1 bg-dark bg-opacity-75 p-1 rounded-pill border border-white border-opacity-10 shadow">
+                <button onClick={handleZoomIn} className="btn btn-sm btn-dark p-1 border-0 rounded-circle w-8 h-8"><ZoomIn size={14} /></button>
+                <button onClick={handleZoomOut} className="btn btn-sm btn-dark p-1 border-0 rounded-circle w-8 h-8"><ZoomOut size={14} /></button>
+                <button onClick={handleResetZoom} className="btn btn-sm btn-dark p-1 border-0 rounded-circle w-8 h-8"><RotateCcw size={14} /></button>
+            </div>
+            <div className="position-absolute bottom-0 start-0 m-3 d-flex flex-column gap-1 pointer-events-none p-3 bg-dark bg-opacity-50 rounded-3 backdrop-blur-sm">
+                <div className="d-flex align-items-center gap-2">
+                    <div className="rounded-circle bg-primary" style={{ width: 8, height: 8 }}></div>
+                    <span className="smaller text-white fw-bold text-uppercase">Manufacturing Hub</span>
                 </div>
-            )}
-
-            <style jsx global>{`
-                .map-viewport {
-                    overflow: visible;
-                }
-
-                .india-svg-container {
-                    width: 100%;
-                    height: 100%;
-                    min-height: 500px;
-                    max-height: 800px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));
-                    overflow: hidden;
-                    position: relative;
-                }
-
-                .reset-map-btn {
-                    position: absolute;
-                    top: 20px;
-                    left: 20px;
-                    z-index: 100;
-                    border-radius: 50px;
-                    padding: 8px 20px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    background: #1e293b;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-
-                .reset-map-btn:hover {
-                    background: #2563eb;
-                    transform: translateY(-2px);
-                }
-                
-                .hub-label {
-                    fill: #475569;
-                    font-weight: 700;
-                    font-size: 6px;
-                    pointer-events: none;
-                    transition: all 0.3s ease;
-                }
-
-                .label-active {
-                    fill: #ef4444;
-                    font-weight: 900;
-                    font-size: 8px;
-                }
-
-                .dark-mode .hub-label {
-                    fill: #94a3b8;
-                }
-                
-                .dark-mode .label-active {
-                    fill: #ef4444;
-                }
-
-                .animate-fade-in {
-                    animation: fadeIn 0.4s ease-out forwards;
-                }
-
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(3px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                
-                .state-region {
-                    fill: #e2e8f0;
-                    stroke: #ffffff;
-                    stroke-width: 0.8;
-                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                    cursor: pointer;
-                }
-
-                .state-region:hover {
-                    fill: #94a3b8;
-                    stroke-width: 1.5;
-                    transform: scale(1.002);
-                    z-index: 10;
-                }
-
-                .state-manufacturing {
-                    fill: #bfdbfe;
-                    stroke: #3b82f6;
-                    cursor: pointer;
-                }
-
-                .state-manufacturing:hover {
-                    fill: #60a5fa !important;
-                }
-
-                .state-region.state-active {
-                    fill: #2563eb !important;
-                    stroke: #1e40af !important;
-                    stroke-width: 2;
-                }
-
-                .district-hub {
-                    fill: #f59e0b;
-                    stroke: #ffffff;
-                    stroke-width: 2;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                }
-
-                .hub-ping {
-                    fill: #f59e0b;
-                    opacity: 0.15;
-                    animation: hubPing 2.5s infinite;
-                    pointer-events: none;
-                    transition: all 0.3s ease;
-                }
-
-                .ping-active {
-                    fill: #ef4444;
-                    opacity: 0.3;
-                    animation-duration: 1.5s;
-                }
-
-                @keyframes hubPing {
-                    0% { transform: scale(1); opacity: 0.3; }
-                    100% { transform: scale(3); opacity: 0; }
-                }
-
-                .hub-active {
-                    fill: #ef4444 !important;
-                    stroke: #ffffff !important;
-                    stroke-width: 3 !important;
-                    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
-                }
-
-                .map-cursor-tooltip {
-                    position: absolute;
-                    z-index: 10000;
-                    pointer-events: none;
-                    transform: translate(-50%, -120%);
-                    transition: left 0.05s ease-out, top 0.05s ease-out;
-                }
-
-                .tooltip-content {
-                    background: rgba(15, 23, 42, 0.95);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(139, 92, 246, 0.3);
-                    border-radius: 12px;
-                    padding: 8px 12px;
-                    color: white;
-                    min-width: 140px;
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-                }
-
-                .tooltip-locked .tooltip-content {
-                    background: rgba(30, 41, 59, 0.98);
-                    border-color: rgba(255, 255, 255, 0.1);
-                }
-
-                .tooltip-badge {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 4px;
-                    gap: 12px;
-                }
-
-                .region-label {
-                    font-weight: 800;
-                    font-size: 0.9rem;
-                    white-space: nowrap;
-                    color: #fff;
-                }
-
-                .live-tag {
-                    background: #ef4444;
-                    font-size: 0.6rem;
-                    font-weight: 900;
-                    padding: 1px 4px;
-                    border-radius: 3px;
-                    animation: blink 1.5s infinite;
-                }
-
-                .locked-tag {
-                    background: #64748b;
-                    font-size: 0.6rem;
-                    font-weight: 900;
-                    padding: 1px 6px;
-                    border-radius: 3px;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .tooltip-mini-stats {
-                    border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    padding-top: 4px;
-                }
-
-                .mini-stat {
-                    display: flex;
-                    justify-content: space-between;
-                    font-size: 0.7rem;
-                    font-weight: 600;
-                }
-
-                .mini-stat .label { opacity: 0.6; }
-
-                @keyframes blink {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.5; }
-                }
-
-                .animate-pop {
-                    animation: tooltipPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-                }
-
-                @keyframes tooltipPop {
-                    from { transform: scale(0.8); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
-                }
-
-                .state-disabled {
-                    cursor: not-allowed !important;
-                    pointer-events: auto !important;
-                    fill: #e2e8f0 !important;
-                    stroke: #cbd5e1 !important;
-                    opacity: 0.8 !important;
-                    transition: fill 0.3s ease;
-                }
-
-                .state-disabled:hover {
-                    fill: #d1d5db !important;
-                }
-
-                .dark-mode .state-region {
-                    fill: #1e293b;
-                    stroke: #334155;
-                }
-                .dark-mode .state-manufacturing {
-                    fill: #1d4ed8;
-                    opacity: 0.8;
-                }
-                .dark-mode .state-disabled {
-                    fill: #1e293b !important;
-                    stroke: #334155 !important;
-                    opacity: 0.5 !important;
-                }
-            `}</style>
+                <div className="d-flex align-items-center gap-2">
+                    <div className="rounded-circle bg-secondary" style={{ width: 8, height: 8 }}></div>
+                    <span className="smaller text-white opacity-50 fw-medium text-uppercase">Locked Region</span>
+                </div>
+            </div>
         </div>
     );
-};
-
-export default IndiaMap;
+}

@@ -175,10 +175,12 @@ const MapPage = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="card-body p-2 p-md-4 d-flex justify-content-center align-items-center">
+                            <div className="card-body p-2 p-md-4 d-flex justify-content-center align-items-center" style={{ minHeight: '650px' }}>
                                 <IndiaMap
                                     onRegionSelect={setSelectedRegion}
                                     selectedRegion={selectedRegion}
+                                    activeDistricts={useMemo(() => [...new Set(customerData.map(c => c.district))], [])}
+                                    searchTerm={searchQuery}
                                 />
                             </div>
                         </div>
