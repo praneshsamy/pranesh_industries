@@ -21,15 +21,15 @@ const MapPage = () => {
         const thisYear = now.getFullYear();
 
         return customerData.filter(customer => {
-            const matchesRegion = !selectedRegion || 
+            const matchesRegion = !selectedRegion ||
                 customer.state.toLowerCase() === selectedRegion.toLowerCase() ||
                 customer.district.toLowerCase() === selectedRegion.toLowerCase();
-            
-            const matchesSearch = !searchQuery || 
-                Object.values(customer).some(val => 
+
+            const matchesSearch = !searchQuery ||
+                Object.values(customer).some(val =>
                     String(val).toLowerCase().includes(searchQuery.toLowerCase())
                 );
-            
+
             let matchesTime = true;
             if (customer.registrationDate) {
                 const regDate = new Date(customer.registrationDate);
@@ -41,7 +41,7 @@ const MapPage = () => {
                     matchesTime = regDate.getFullYear() === thisYear;
                 }
             }
-            
+
             return matchesRegion && matchesSearch && matchesTime;
         });
     }, [selectedRegion, searchQuery, timeFilter]);
@@ -79,10 +79,10 @@ const MapPage = () => {
                             <span className="input-group-text border-0 bg-transparent ps-3">
                                 <i className="bi bi-search text-primary"></i>
                             </span>
-                            <input 
-                                type="text" 
-                                className="form-control border-0 bg-transparent py-2" 
-                                placeholder="Search customers, hubs, or regions..." 
+                            <input
+                                type="text"
+                                className="form-control border-0 bg-transparent py-2"
+                                placeholder="Search customers, hubs, or regions..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -92,7 +92,7 @@ const MapPage = () => {
                     <div className="d-flex align-items-center gap-3">
                         <div className="time-filters d-none d-xl-flex p-1 bg-light-glass rounded-3 border">
                             {['Today', 'Month', 'Year', 'All'].map((p) => (
-                                <button 
+                                <button
                                     key={p}
                                     onClick={() => setTimeFilter(p.toLowerCase())}
                                     className={`btn btn-sm px-3 rounded-2 fw-bold transition-all ${timeFilter === p.toLowerCase() ? 'bg-primary text-white shadow-sm' : 'text-secondary'}`}
@@ -164,7 +164,7 @@ const MapPage = () => {
                                     <p className="text-secondary small mb-0">Interactive industrial footprint visualizer</p>
                                 </div>
                                 <div className="d-flex gap-2">
-                                    <button 
+                                    <button
                                         className="btn btn-sm btn-light-glass border"
                                         onClick={() => {
                                             setSelectedRegion(null);
@@ -179,7 +179,7 @@ const MapPage = () => {
                                 <IndiaMap
                                     onRegionSelect={setSelectedRegion}
                                     selectedRegion={selectedRegion}
-                                    activeDistricts={useMemo(() => [...new Set(customerData.map(c => c.district))], [])}
+                                    activeDistricts={useMemo(() => [...new Set(customerData.filter(c => c.status === 'Active').map(c => c.district))], [])}
                                     searchTerm={searchQuery}
                                 />
                             </div>
@@ -193,10 +193,7 @@ const MapPage = () => {
                                 customerCount={filteredCustomers.length}
                             />
                         </div>
-                        <div className="card border-0 shadow-lg bg-glass overflow-hidden flex-grow-1 sidebar-card">
-                            <div className="card-header bg-transparent border-0 p-4 pb-2">
-                                <h5 className="fw-black text-dark-mode mb-0">Client Registry</h5>
-                            </div>
+                        <div className="card border-0 shadow-lg bg-transparent overflow-hidden flex-grow-1">
                             <div className="card-body p-0">
                                 <CustomerTable
                                     customers={filteredCustomers}

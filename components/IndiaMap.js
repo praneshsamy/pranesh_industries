@@ -21,6 +21,8 @@ export default function IndiaMap({
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
     const [viewMode, setViewMode] = useState('states');
     const [selectedState, setSelectedState] = useState(null);
+    const [hoveredRegion, setHoveredRegion] = useState(null);
+    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const lastZoomedStateRef = useRef(null);
 
     const manufacturingStates = useMemo(() => [
@@ -146,6 +148,15 @@ export default function IndiaMap({
             .attr("stroke", "#09090b")
             .attr("stroke-width", 0.5)
             .attr("class", (d) => isManufacturing(d.properties?.NAME_1 || d.properties?.stname) ? "cursor-pointer" : "opacity-40")
+            .on("mouseover", (event, d) => {
+                const name = d.properties?.NAME_1 || d.properties?.stname;
+                setHoveredRegion(name);
+            })
+            .on("mousemove", (event) => {
+                const rect = wrapperRef.current.getBoundingClientRect();
+                setCursorPos({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+            })
+            .on("mouseout", () => setHoveredRegion(null))
             .on("click", (event, feature) => {
                 const name = feature.properties?.NAME_1 || feature.properties?.stname;
                 if (!isManufacturing(name)) return;
@@ -193,8 +204,22 @@ export default function IndiaMap({
                     if (isHub) return '#3b82f6';
                     return '#27272a';
                 })
+                .attr("filter", (f) => {
+                    const name = f.properties?.NAME_2 || f.properties?.dtname || '';
+                    const isHub = activeDistricts.some(ad => ad?.toUpperCase() === name.toUpperCase());
+                    return isHub ? "url(#selection-glow)" : null;
+                })
                 .attr("stroke", "#09090b")
                 .attr("stroke-width", 0.2)
+                .on("mouseover", (event, f) => {
+                    const name = f.properties?.NAME_2 || f.properties?.dtname || '';
+                    setHoveredRegion(name);
+                })
+                .on("mousemove", (event) => {
+                    const rect = wrapperRef.current.getBoundingClientRect();
+                    setCursorPos({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+                })
+                .on("mouseout", () => setHoveredRegion(null))
                 .on("click", (event, f) => {
                     event.stopPropagation();
                     if (onDistrictSelect) onDistrictSelect(f);
@@ -257,6 +282,36 @@ export default function IndiaMap({
     return (
         <div ref={wrapperRef} className="w-100 h-100 rounded-3 overflow-hidden border bg-[#09090b] position-relative" style={{ minHeight: '600px' }}>
             <svg ref={svgRef} className="w-100 h-100" style={{ cursor: 'grab' }} />
+
+            {/* Smarter Floating Tooltip */}
+            {hoveredRegion && (
+                <div
+                    className="map-cursor-tooltip"
+                    style={{
+                        position: 'absolute',
+                        left: `${cursorPos.x}px`,
+                        top: `${cursorPos.y}px`,
+                        pointerEvents: 'none',
+                        zIndex: 1000,
+                        transform: 'translate(-50%, -120%)'
+                    }}
+                >
+                    <div className="tooltip-inner-content shadow-lg px-3 py-2 rounded-3 bg-dark border border-white border-opacity-10">
+                        <div className="d-flex align-items-center justify-content-between gap-3 mb-1">
+                            <span className="fw-black text-white small text-uppercase tracking-wider">{hoveredRegion}</span>
+                            {activeDistricts.some(d => d.toUpperCase() === hoveredRegion.toUpperCase()) || isManufacturing(hoveredRegion) ? (
+                                <span className="badge bg-primary smaller animate-pulse">LIVE</span>
+                            ) : null}
+                        </div>
+                        <div className="smaller text-white text-opacity-50 fw-medium">
+                            {isManufacturing(hoveredRegion) ? 'Manufacturing Hub' :
+                                activeDistricts.some(d => d.toUpperCase() === hoveredRegion.toUpperCase()) ? 'Active Client Zone' :
+                                    'Region Inspected'}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {viewMode === 'districts' && (
                 <button onClick={handleResetZoom} className="btn btn-dark btn-sm position-absolute top-0 start-0 m-3 z-3 shadow d-flex align-items-center gap-2 px-3 py-2 border-white border-opacity-10 rounded-pill">
                     <ArrowLeft size={16} className="text-primary" />
@@ -278,6 +333,27 @@ export default function IndiaMap({
                     <span className="smaller text-white opacity-50 fw-medium text-uppercase">Locked Region</span>
                 </div>
             </div>
+
+            <style jsx global>{`
+                .fw-black { font-weight: 900; }
+                .smaller { font-size: 0.7rem; }
+                .tracking-wider { letter-spacing: 0.05em; }
+                
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                    100% { opacity: 1; }
+                }
+                .animate-pulse {
+                    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                }
+
+                .tooltip-inner-content {
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    background: rgba(15, 15, 20, 0.95) !important;
+                }
+            `}</style>
         </div>
     );
 }
