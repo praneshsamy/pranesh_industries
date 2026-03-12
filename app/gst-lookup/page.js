@@ -336,7 +336,7 @@ export default function GstLookupPage() {
 
                 <div className="lookup-card">
                     <div className="header-section">
-                        <h1>GST Search Engine</h1>
+                        <h1>GSTIN Search Engine</h1>
                         <p>Real-time Business Verification and Entity Profiling</p>
                     </div>
 
