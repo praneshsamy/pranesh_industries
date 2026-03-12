@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { ArrowLeft, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import * as d3 from 'd3';
+import { isDistrictMatch, normalizeName } from '@/utils/geo_utils';
 
 const geoCache = { states: null, districts: null };
 
@@ -110,6 +111,12 @@ export default function IndiaMap({
         const projection = d3.geoMercator().fitSize([width, height], geoData.states);
         const pathGenerator = d3.geoPath().projection(projection);
 
+        // Add Glow Filter
+        const defs = svg.append("defs");
+        const glowFilter = defs.append("filter").attr("id", "selection-glow").attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
+        glowFilter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "blur");
+        glowFilter.append("feComposite").attr("in", "SourceGraphic").attr("in2", "blur").attr("operator", "over");
+
         const g = svg.append("g");
         g.attr("transform", currentTransform.toString());
 
@@ -135,11 +142,11 @@ export default function IndiaMap({
             const x = (bounds[0][0] + bounds[1][0]) / 2, y = (bounds[0][1] + bounds[1][1]) / 2;
             const scale = Math.max(1, Math.min(40, 1.05 / Math.max(dx / width, dy / height)));
             const translate = [width / 2 - scale * x, height / 2 - scale * y];
-            
+
             // Fast CSS-driven transition
             svg.transition()
                 .duration(250)
-                .ease(d3.easeLinear) 
+                .ease(d3.easeLinear)
                 .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
         };
 
@@ -156,7 +163,6 @@ export default function IndiaMap({
             .attr("stroke", "#09090b")
             .attr("stroke-width", 0.5)
             .attr("class", (d) => isManufacturing(d.properties?.NAME_1 || d.properties?.stname) ? "cursor-pointer" : "opacity-40")
-            /* Commented out hover logic to test performance
             .on("mouseover", (event, d) => {
                 const name = d.properties?.NAME_1 || d.properties?.stname;
                 setHoveredRegion(name);
@@ -171,7 +177,6 @@ export default function IndiaMap({
                 }
             })
             .on("mouseout", () => setHoveredRegion(null))
-            */
             .on("click", (event, feature) => {
                 const name = feature.properties?.NAME_1 || feature.properties?.stname;
                 if (!isManufacturing(name)) return;
@@ -213,15 +218,19 @@ export default function IndiaMap({
                 .attr("d", pathGenerator)
                 .attr("fill", (f) => {
                     const name = f.properties?.NAME_2 || f.properties?.dtname || '';
-                    const isHub = activeDistricts.some(ad => ad?.toUpperCase() === name.toUpperCase());
-                    const isSel = activeDistrict && ((activeDistrict.properties?.NAME_2 || activeDistrict.properties?.dtname || '').toUpperCase() === name.toUpperCase());
+                    const isHub = activeDistricts.some(ad => isDistrictMatch(ad, name));
+                    const isSel = activeDistrict && isDistrictMatch(activeDistrict.properties?.NAME_2 || activeDistrict.properties?.dtname || '', name);
                     if (isSel) return '#38bdf8';
                     if (isHub) return '#3b82f6';
                     return '#27272a';
                 })
+                .attr("filter", (f) => {
+                    const name = f.properties?.NAME_2 || f.properties?.dtname || '';
+                    const isHub = activeDistricts.some(ad => isDistrictMatch(ad, name));
+                    return isHub ? "url(#selection-glow)" : null;
+                })
                 .attr("stroke", "#09090b")
                 .attr("stroke-width", 0.2)
-                /* Commented out hover logic to test performance
                 .on("mouseover", (event, f) => {
                     const name = f.properties?.NAME_2 || f.properties?.dtname || '';
                     setHoveredRegion(name);
@@ -236,7 +245,6 @@ export default function IndiaMap({
                     }
                 })
                 .on("mouseout", () => setHoveredRegion(null))
-                */
                 .on("click", (event, f) => {
                     event.stopPropagation();
                     if (onDistrictSelect) onDistrictSelect(f);
@@ -302,9 +310,7 @@ export default function IndiaMap({
             <svg ref={svgRef} className="w-100 h-100" style={{ cursor: 'grab' }} />
 
             {/* Smarter Floating Tooltip (Ref-based for speed) */}
-            {/* Tooltip disabled for performance testing */}
-            {/*
-            hoveredRegion && (
+            {hoveredRegion && (
                 <div
                     ref={tooltipRef}
                     className="map-cursor-tooltip"
@@ -321,19 +327,18 @@ export default function IndiaMap({
                     <div className="tooltip-inner-content shadow-lg px-3 py-2 rounded-3 bg-dark border border-white border-opacity-10">
                         <div className="d-flex align-items-center justify-content-between gap-3 mb-1">
                             <span className="fw-black text-white small text-uppercase tracking-wider">{hoveredRegion}</span>
-                            {activeDistricts.some(d => d.toUpperCase() === hoveredRegion.toUpperCase()) || isManufacturing(hoveredRegion) ? (
+                            {activeDistricts.some(d => isDistrictMatch(d, hoveredRegion)) || isManufacturing(hoveredRegion) ? (
                                 <span className="badge bg-primary smaller animate-pulse">LIVE</span>
                             ) : null}
                         </div>
                         <div className="smaller text-white text-opacity-50 fw-medium">
                             {isManufacturing(hoveredRegion) ? 'Manufacturing Hub' :
-                                activeDistricts.some(d => d.toUpperCase() === hoveredRegion.toUpperCase()) ? 'Active Client Zone' :
+                                activeDistricts.some(d => isDistrictMatch(d, hoveredRegion)) ? 'Active Client Zone' :
                                     'Region Inspected'}
                         </div>
                     </div>
                 </div>
-            )
-            */}
+            )}
 
             {viewMode === 'districts' && (
                 <button onClick={handleResetZoom} className="btn btn-dark btn-sm position-absolute top-0 start-0 m-3 z-3 shadow d-flex align-items-center gap-2 px-3 py-2 border-white border-opacity-10 rounded-pill">

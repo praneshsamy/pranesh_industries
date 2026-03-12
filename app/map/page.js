@@ -6,6 +6,7 @@ import IndiaMap from '@/components/IndiaMap';
 import CustomerTable from '@/components/CustomerTable';
 import StateInfoCard from '@/components/StateInfoCard';
 import customerData from '@/data/customers.json';
+import { isDistrictMatch } from '@/utils/geo_utils';
 
 const MapPage = () => {
     const [selectedRegion, setSelectedRegion] = useState(null);
@@ -23,7 +24,7 @@ const MapPage = () => {
         return customerData.filter(customer => {
             const matchesRegion = !selectedRegion ||
                 customer.state.toLowerCase() === selectedRegion.toLowerCase() ||
-                customer.district.toLowerCase() === selectedRegion.toLowerCase();
+                isDistrictMatch(customer.district, selectedRegion);
 
             const matchesSearch = !searchQuery ||
                 Object.values(customer).some(val =>
@@ -179,7 +180,7 @@ const MapPage = () => {
                                 <IndiaMap
                                     onRegionSelect={setSelectedRegion}
                                     selectedRegion={selectedRegion}
-                                    activeDistricts={useMemo(() => [...new Set(customerData.filter(c => c.status === 'Active').map(c => c.district))], [])}
+                                    activeDistricts={useMemo(() => [...new Set(customerData.map(c => c.district))], [])}
                                     searchTerm={searchQuery}
                                 />
                             </div>
