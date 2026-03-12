@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { ArrowLeft, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import * as d3 from 'd3';
 
+const geoCache = { states: null, districts: null };
+
 export default function IndiaMap({
     onDistrictSelect,
     activeDistrict,
@@ -17,12 +19,12 @@ export default function IndiaMap({
 }) {
     const svgRef = useRef(null);
     const wrapperRef = useRef(null);
-    const [geoData, setGeoData] = useState(null);
+    const tooltipRef = useRef(null);
+    const [geoData, setGeoData] = useState(geoCache.states ? geoCache : null);
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
     const [viewMode, setViewMode] = useState('states');
     const [selectedState, setSelectedState] = useState(null);
     const [hoveredRegion, setHoveredRegion] = useState(null);
-    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const lastZoomedStateRef = useRef(null);
 
     const manufacturingStates = useMemo(() => [
@@ -31,12 +33,18 @@ export default function IndiaMap({
 
     const isManufacturing = (name) => manufacturingStates.includes((name || '').toUpperCase());
 
-    // 1. Fetch GeoJSON
+    // 1. Fetch GeoJSON (Cached)
     useEffect(() => {
+        if (geoCache.states) {
+            setGeoData({ ...geoCache });
+            return;
+        }
         Promise.all([
             fetch('https://raw.githubusercontent.com/geohacker/india/master/state/india_state.geojson').then(res => res.json()),
             fetch('https://raw.githubusercontent.com/geohacker/india/master/district/india_district.geojson').then(res => res.json())
         ]).then(([states, districts]) => {
+            geoCache.states = states;
+            geoCache.districts = districts;
             setGeoData({ states, districts });
         }).catch(err => console.error("Error loading GeoJSON", err));
     }, []);
@@ -102,11 +110,6 @@ export default function IndiaMap({
         const projection = d3.geoMercator().fitSize([width, height], geoData.states);
         const pathGenerator = d3.geoPath().projection(projection);
 
-        const defs = svg.append("defs");
-        const glowFilter = defs.append("filter").attr("id", "selection-glow").attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
-        glowFilter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "blur");
-        glowFilter.append("feComposite").attr("in", "SourceGraphic").attr("in2", "blur").attr("operator", "over");
-
         const g = svg.append("g");
         g.attr("transform", currentTransform.toString());
 
@@ -132,7 +135,12 @@ export default function IndiaMap({
             const x = (bounds[0][0] + bounds[1][0]) / 2, y = (bounds[0][1] + bounds[1][1]) / 2;
             const scale = Math.max(1, Math.min(40, 1.05 / Math.max(dx / width, dy / height)));
             const translate = [width / 2 - scale * x, height / 2 - scale * y];
-            svg.transition().duration(900).ease(d3.easeCubicInOut).call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+            
+            // Fast CSS-driven transition
+            svg.transition()
+                .duration(250)
+                .ease(d3.easeLinear) 
+                .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
         };
 
         // Render States
@@ -148,15 +156,22 @@ export default function IndiaMap({
             .attr("stroke", "#09090b")
             .attr("stroke-width", 0.5)
             .attr("class", (d) => isManufacturing(d.properties?.NAME_1 || d.properties?.stname) ? "cursor-pointer" : "opacity-40")
+            /* Commented out hover logic to test performance
             .on("mouseover", (event, d) => {
                 const name = d.properties?.NAME_1 || d.properties?.stname;
                 setHoveredRegion(name);
             })
             .on("mousemove", (event) => {
-                const rect = wrapperRef.current.getBoundingClientRect();
-                setCursorPos({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+                if (tooltipRef.current && wrapperRef.current) {
+                    const rect = wrapperRef.current.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    tooltipRef.current.style.left = `${x}px`;
+                    tooltipRef.current.style.top = `${y}px`;
+                }
             })
             .on("mouseout", () => setHoveredRegion(null))
+            */
             .on("click", (event, feature) => {
                 const name = feature.properties?.NAME_1 || feature.properties?.stname;
                 if (!isManufacturing(name)) return;
@@ -204,22 +219,24 @@ export default function IndiaMap({
                     if (isHub) return '#3b82f6';
                     return '#27272a';
                 })
-                .attr("filter", (f) => {
-                    const name = f.properties?.NAME_2 || f.properties?.dtname || '';
-                    const isHub = activeDistricts.some(ad => ad?.toUpperCase() === name.toUpperCase());
-                    return isHub ? "url(#selection-glow)" : null;
-                })
                 .attr("stroke", "#09090b")
                 .attr("stroke-width", 0.2)
+                /* Commented out hover logic to test performance
                 .on("mouseover", (event, f) => {
                     const name = f.properties?.NAME_2 || f.properties?.dtname || '';
                     setHoveredRegion(name);
                 })
                 .on("mousemove", (event) => {
-                    const rect = wrapperRef.current.getBoundingClientRect();
-                    setCursorPos({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+                    if (tooltipRef.current && wrapperRef.current) {
+                        const rect = wrapperRef.current.getBoundingClientRect();
+                        const x = event.clientX - rect.left;
+                        const y = event.clientY - rect.top;
+                        tooltipRef.current.style.left = `${x}px`;
+                        tooltipRef.current.style.top = `${y}px`;
+                    }
                 })
                 .on("mouseout", () => setHoveredRegion(null))
+                */
                 .on("click", (event, f) => {
                     event.stopPropagation();
                     if (onDistrictSelect) onDistrictSelect(f);
@@ -247,21 +264,22 @@ export default function IndiaMap({
             lastZoomedStateRef.current = null;
         }
 
+        // Efficient update pattern
         svg.node().__zoomBehavior = zoom;
-    }, [geoData, dimensions, activeDistricts, activeDistrict, viewMode, selectedState, searchTerm, onDistrictSelect, onStateSelect, onRegionSelect, manufacturingStates]);
+    }, [geoData, dimensions, activeDistricts, activeDistrict, viewMode, selectedState, searchTerm]);
 
     const handleZoomIn = () => {
         const b = d3.select(svgRef.current).node().__zoomBehavior;
-        if (b) d3.select(svgRef.current).transition().duration(300).call(b.scaleBy, 1.5);
+        if (b) d3.select(svgRef.current).transition().duration(150).call(b.scaleBy, 2);
     };
     const handleZoomOut = () => {
         const b = d3.select(svgRef.current).node().__zoomBehavior;
-        if (b) d3.select(svgRef.current).transition().duration(300).call(b.scaleBy, 0.75);
+        if (b) d3.select(svgRef.current).transition().duration(150).call(b.scaleBy, 0.5);
     };
     const handleResetZoom = () => {
         const b = d3.select(svgRef.current).node().__zoomBehavior;
         if (b) {
-            d3.select(svgRef.current).transition().duration(750).call(b.transform, d3.zoomIdentity);
+            d3.select(svgRef.current).transition().duration(300).call(b.transform, d3.zoomIdentity);
             setViewMode('states');
             setSelectedState(null);
             if (onStateSelect) onStateSelect(null);
@@ -283,17 +301,21 @@ export default function IndiaMap({
         <div ref={wrapperRef} className="w-100 h-100 rounded-3 overflow-hidden border bg-[#09090b] position-relative" style={{ minHeight: '600px' }}>
             <svg ref={svgRef} className="w-100 h-100" style={{ cursor: 'grab' }} />
 
-            {/* Smarter Floating Tooltip */}
-            {hoveredRegion && (
+            {/* Smarter Floating Tooltip (Ref-based for speed) */}
+            {/* Tooltip disabled for performance testing */}
+            {/*
+            hoveredRegion && (
                 <div
+                    ref={tooltipRef}
                     className="map-cursor-tooltip"
                     style={{
                         position: 'absolute',
-                        left: `${cursorPos.x}px`,
-                        top: `${cursorPos.y}px`,
+                        left: 0,
+                        top: 0,
                         pointerEvents: 'none',
                         zIndex: 1000,
-                        transform: 'translate(-50%, -120%)'
+                        transform: 'translate(-50%, -120%)',
+                        transition: 'none'
                     }}
                 >
                     <div className="tooltip-inner-content shadow-lg px-3 py-2 rounded-3 bg-dark border border-white border-opacity-10">
@@ -310,7 +332,8 @@ export default function IndiaMap({
                         </div>
                     </div>
                 </div>
-            )}
+            )
+            */}
 
             {viewMode === 'districts' && (
                 <button onClick={handleResetZoom} className="btn btn-dark btn-sm position-absolute top-0 start-0 m-3 z-3 shadow d-flex align-items-center gap-2 px-3 py-2 border-white border-opacity-10 rounded-pill">
